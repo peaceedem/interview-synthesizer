@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Interview Synthesizer</title>
+    <style>
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        background: #f5f5f0;
+        color: #1a1a1a;
+        min-height: 100vh;
+      }
+
+      header {
+        background: #fff;
+        border-bottom: 1px solid #e5e5e0;
+        padding: 20px 32px;
+        display: flex;
+        align-items: baseline;
+        gap: 12px;
+      }
+
+      header h1 {
+        font-size: 22px;
+        font-weight: 700;
+        letter-spacing: -0.3px;
+      }
+
+      header .subtitle {
+        font-size: 14px;
+        color: #888;
+      }
+
+      .layout {
+        display: grid;
+        grid-template-columns: 380px 1fr;
+        gap: 0;
+        min-height: calc(100vh - 65px);
+      }
+
+      /* LEFT PANEL */
+      .panel-left {
+        background: #fff;
+        border-right: 1px solid #e5e5e0;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+
+      .panel-section {
+        padding: 24px;
+        border-bottom: 1px solid #e5e5e0;
+      }
+
+      .panel-section h2 {
+        font-size: 13px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #666;
+        margin-bottom: 14px;
+      }
+
+      .field-group {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      input[type="text"] {
+        border: 1px solid #ddd;
+        border-radius: 7px;
+        padding: 9px 12px;
+        font-size: 14px;
+        width: 100%;
+        transition: border-color 0.15s;
+        font-family: inherit;
+      }
+
+      input[type="text"]:focus {
+        outline: none;
+        border-color: #3b6ef8;
+        box-shadow: 0 0 0 3px rgba(59, 110, 248, 0.12);
+      }
+
+      textarea {
+        border: 1px solid #ddd;
+        border-radius: 7px;
+        padding: 10px 12px;
+        font-size: 13.5px;
+        width: 100%;
+        resize: vertical;
+        min-height: 180px;
+        font-family: inherit;
+        line-height: 1.55;
+        transition: border-color 0.15s;
+      }
+
+      textarea:focus {
+        outline: none;
+        border-color: #3b6ef8;
+        box-shadow: 0 0 0 3px rgba(59, 110, 248, 0.12);
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 9px 16px;
+        border-radius: 7px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        border: none;
+        transition: background 0.15s, opacity 0.15s;
+        font-family: inherit;
+      }
+
+      .btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      .btn-primary {
+        background: #3b6ef8;
+        color: #fff;
+        width: 100%;
+      }
+
+      .btn-primary:hover:not(:disabled) { background: #2a5de8; }
+
+      .btn-success {
+        background: #1a9e6a;
+        color: #fff;
+        width: 100%;
+        font-size: 15px;
+        padding: 12px 16px;
+      }
+
+      .btn-success:hover:not(:disabled) { background: #148d5c; }
+
+      .btn-ghost {
+        background: transparent;
+        color: #888;
+        border: 1px solid #e0e0e0;
+        padding: 5px 10px;
+        font-size: 12px;
+      }
+
+      .btn-ghost:hover:not(:disabled) {
+        background: #f5f5f0;
+        color: #444;
+      }
+
+      .btn-danger-ghost {
+        background: transparent;
+        color: #e05252;
+        border: 1px solid #fad9d9;
+        font-size: 12px;
+        padding: 5px 10px;
+      }
+
+      .btn-danger-ghost:hover:not(:disabled) {
+        background: #fff5f5;
+      }
+
+      /* Transcript list */
+      .transcripts-area {
+        flex: 1;
+        overflow-y: auto;
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .transcripts-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 14px 24px 0;
+      }
+
+      .transcripts-header .count-badge {
+        background: #3b6ef8;
+        color: #fff;
+        font-size: 12px;
+        font-weight: 600;
+        padding: 2px 8px;
+        border-radius: 20px;
+      }
+
+      .transcript-card {
+        background: #f9f9f7;
+        border: 1px solid #e8e8e3;
+        border-radius: 8px;
+        padding: 12px 14px;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 10px;
+        transition: border-color 0.15s;
+      }
+
+      .transcript-card:hover {
+        border-color: #c8c8c0;
+      }
+
+      .transcript-card .card-body { flex: 1; min-width: 0; }
+
+      .transcript-card .card-label {
+        font-size: 13.5px;
+        font-weight: 600;
+        color: #333;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .transcript-card .card-preview {
+        font-size: 12.5px;
+        color: #888;
+        margin-top: 4px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .transcript-card .card-date {
+        font-size: 11px;
+        color: #aaa;
+        margin-top: 3px;
+      }
+
+      .empty-state {
+        text-align: center;
+        color: #aaa;
+        font-size: 14px;
+        padding: 40px 20px;
+      }
+
+      .empty-state .empty-icon {
+        font-size: 36px;
+        margin-bottom: 10px;
+        opacity: 0.4;
+      }
+
+      /* Synthesize section */
+      .synthesize-section {
+        padding: 20px 24px;
+        border-top: 1px solid #e5e5e0;
+        background: #fafaf8;
+      }
+
+      .synthesize-section .hint {
+        font-size: 12px;
+        color: #aaa;
+        text-align: center;
+        margin-top: 8px;
+      }
+
+      /* RIGHT PANEL */
+      .panel-right {
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+
+      .results-header {
+        padding: 20px 28px 16px;
+        border-bottom: 1px solid #e5e5e0;
+        background: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .results-header h2 {
+        font-size: 16px;
+        font-weight: 600;
+      }
+
+      .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #ccc;
+        display: inline-block;
+        margin-right: 6px;
+      }
+
+      .status-dot.active {
+        background: #1a9e6a;
+        animation: pulse 1.2s ease-in-out infinite;
+      }
+
+      @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.4; }
+      }
+
+      .results-body {
+        flex: 1;
+        overflow-y: auto;
+        padding: 28px 32px;
+      }
+
+      .placeholder-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        color: #bbb;
+        gap: 12px;
+        text-align: center;
+      }
+
+      .placeholder-state .placeholder-icon {
+        font-size: 48px;
+        opacity: 0.3;
+      }
+
+      .placeholder-state p {
+        font-size: 15px;
+        max-width: 280px;
+        line-height: 1.5;
+      }
+
+      /* Rendered markdown output */
+      #output {
+        font-size: 15px;
+        line-height: 1.7;
+        color: #1a1a1a;
+      }
+
+      #output h2 {
+        font-size: 18px;
+        font-weight: 700;
+        margin: 28px 0 12px;
+        padding-bottom: 8px;
+        border-bottom: 2px solid #e8e8e0;
+        color: #111;
+      }
+
+      #output h2:first-child { margin-top: 0; }
+
+      #output h3 {
+        font-size: 15px;
+        font-weight: 600;
+        margin: 18px 0 8px;
+        color: #333;
+      }
+
+      #output p {
+        margin-bottom: 12px;
+        color: #333;
+      }
+
+      #output ul, #output ol {
+        padding-left: 22px;
+        margin-bottom: 14px;
+      }
+
+      #output li {
+        margin-bottom: 6px;
+        color: #333;
+      }
+
+      #output strong {
+        font-weight: 600;
+        color: #111;
+      }
+
+      #output blockquote {
+        border-left: 3px solid #3b6ef8;
+        margin: 14px 0;
+        padding: 10px 16px;
+        background: #f0f4ff;
+        border-radius: 0 6px 6px 0;
+        font-style: italic;
+        color: #444;
+      }
+
+      #output code {
+        background: #f0f0ea;
+        padding: 1px 5px;
+        border-radius: 4px;
+        font-size: 13px;
+      }
+
+      .toast {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        background: #1a1a1a;
+        color: #fff;
+        padding: 10px 16px;
+        border-radius: 8px;
+        font-size: 13.5px;
+        opacity: 0;
+        transform: translateY(8px);
+        transition: opacity 0.2s, transform 0.2s;
+        pointer-events: none;
+        z-index: 100;
+      }
+
+      .toast.show {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .toast.error { background: #c0392b; }
+
+      @media (max-width: 800px) {
+        .layout { grid-template-columns: 1fr; }
+        .panel-left { max-height: 55vh; }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Interview Synthesizer</h1>
+      <span class="subtitle">Extract themes, pain points &amp; insights from customer interviews</span>
+    </header>
+
+    <div class="layout">
+      <!-- LEFT: Input + transcript list -->
+      <div class="panel-left">
+        <div class="panel-section">
+          <h2>Add Transcript</h2>
+          <div class="field-group">
+            <input
+              type="text"
+              id="label-input"
+              placeholder="Label (e.g. Sarah – Product Manager)"
+            />
+            <textarea
+              id="transcript-input"
+              placeholder="Paste interview transcript here…"
+            ></textarea>
+            <button class="btn btn-primary" id="add-btn" onclick="addTranscript()">
+              + Add Transcript
+            </button>
+          </div>
+        </div>
+
+        <div class="transcripts-header">
+          <span style="font-size:13px;font-weight:600;color:#555">Saved Transcripts</span>
+          <span class="count-badge" id="count-badge">0</span>
+        </div>
+
+        <div class="transcripts-area" id="transcript-list">
+          <div class="empty-state">
+            <div class="empty-icon">📋</div>
+            <div>No transcripts yet.<br />Add one above to get started.</div>
+          </div>
+        </div>
+
+        <div class="synthesize-section">
+          <button class="btn btn-success" id="synthesize-btn" onclick="runSynthesis()" disabled>
+            ✦ Synthesize All Transcripts
+          </button>
+          <div class="hint" id="synthesize-hint">Add at least 1 transcript to synthesize</div>
+        </div>
+      </div>
+
+      <!-- RIGHT: Results -->
+      <div class="panel-right">
+        <div class="results-header">
+          <h2>
+            <span class="status-dot" id="status-dot"></span>
+            Synthesis Results
+          </h2>
+          <button class="btn btn-ghost" id="copy-btn" onclick="copyResults()" style="display:none">
+            Copy
+          </button>
+        </div>
+        <div class="results-body" id="results-body">
+          <div class="placeholder-state" id="placeholder">
+            <div class="placeholder-icon">🔍</div>
+            <p>Add interview transcripts on the left, then click <strong>Synthesize</strong> to extract insights.</p>
+          </div>
+          <div id="output" style="display:none"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+      let transcripts = [];
+
+      async function fetchTranscripts() {
+        const res = await fetch("/api/transcripts");
+        const data = await res.json();
+        transcripts = data.transcripts;
+        renderTranscripts();
+      }
+
+      function renderTranscripts() {
+        const list = document.getElementById("transcript-list");
+        const badge = document.getElementById("count-badge");
+        const synthesizeBtn = document.getElementById("synthesize-btn");
+        const hint = document.getElementById("synthesize-hint");
+
+        badge.textContent = transcripts.length;
+
+        if (transcripts.length === 0) {
+          list.innerHTML = `<div class="empty-state">
+            <div class="empty-icon">📋</div>
+            <div>No transcripts yet.<br/>Add one above to get started.</div>
+          </div>`;
+          synthesizeBtn.disabled = true;
+          hint.textContent = "Add at least 1 transcript to synthesize";
+          return;
+        }
+
+        synthesizeBtn.disabled = false;
+        hint.textContent = `${transcripts.length} transcript${transcripts.length > 1 ? "s" : ""} ready`;
+
+        list.innerHTML = transcripts.map(t => `
+          <div class="transcript-card">
+            <div class="card-body">
+              <div class="card-label">${escapeHtml(t.label)}</div>
+              <div class="card-preview">${escapeHtml(t.text.slice(0, 90))}${t.text.length > 90 ? "…" : ""}</div>
+              <div class="card-date">${new Date(t.addedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</div>
+            </div>
+            <button class="btn btn-danger-ghost" onclick="deleteTranscript(${t.id})">✕</button>
+          </div>
+        `).join("");
+      }
+
+      async function addTranscript() {
+        const text = document.getElementById("transcript-input").value.trim();
+        const label = document.getElementById("label-input").value.trim();
+        if (!text) {
+          showToast("Please paste a transcript first.", "error");
+          return;
+        }
+
+        const btn = document.getElementById("add-btn");
+        btn.disabled = true;
+        btn.textContent = "Adding…";
+
+        try {
+          const res = await fetch("/api/transcripts", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ text, label }),
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error);
+          transcripts = [...transcripts, data.transcript];
+          renderTranscripts();
+          document.getElementById("transcript-input").value = "";
+          document.getElementById("label-input").value = "";
+          showToast(`"${data.transcript.label}" added.`);
+        } catch (err) {
+          showToast(err.message || "Failed to add transcript.", "error");
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "+ Add Transcript";
+        }
+      }
+
+      async function deleteTranscript(id) {
+        try {
+          const res = await fetch(`/api/transcripts/${id}`, { method: "DELETE" });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error);
+          transcripts = transcripts.filter(t => t.id !== id);
+          renderTranscripts();
+          showToast("Transcript removed.");
+        } catch (err) {
+          showToast(err.message || "Failed to delete.", "error");
+        }
+      }
+
+      async function runSynthesis() {
+        const btn = document.getElementById("synthesize-btn");
+        const dot = document.getElementById("status-dot");
+        const placeholder = document.getElementById("placeholder");
+        const output = document.getElementById("output");
+        const copyBtn = document.getElementById("copy-btn");
+
+        btn.disabled = true;
+        btn.textContent = "Synthesizing…";
+        dot.classList.add("active");
+        placeholder.style.display = "none";
+        output.style.display = "block";
+        output.innerHTML = "";
+        copyBtn.style.display = "none";
+
+        let rawText = "";
+
+        try {
+          const es = new EventSource("/api/synthesize");
+
+          es.onmessage = (e) => {
+            const data = JSON.parse(e.data);
+            if (data.done) {
+              es.close();
+              finishSynthesis(btn, dot, copyBtn);
+              return;
+            }
+            if (data.error) {
+              es.close();
+              showToast(data.error, "error");
+              finishSynthesis(btn, dot, copyBtn);
+              return;
+            }
+            if (data.text) {
+              rawText += data.text;
+              output.innerHTML = renderMarkdown(rawText);
+              document.getElementById("results-body").scrollTop =
+                document.getElementById("results-body").scrollHeight;
+            }
+          };
+
+          es.onerror = () => {
+            es.close();
+            if (!rawText) {
+              showToast("Connection error. Is ANTHROPIC_API_KEY set?", "error");
+            }
+            finishSynthesis(btn, dot, copyBtn);
+          };
+        } catch (err) {
+          showToast(err.message || "Synthesis failed.", "error");
+          finishSynthesis(btn, dot, copyBtn);
+        }
+      }
+
+      function finishSynthesis(btn, dot, copyBtn) {
+        btn.disabled = false;
+        btn.textContent = "✦ Synthesize All Transcripts";
+        dot.classList.remove("active");
+        copyBtn.style.display = "inline-flex";
+      }
+
+      function copyResults() {
+        const text = document.getElementById("output").innerText;
+        navigator.clipboard.writeText(text).then(() => showToast("Copied to clipboard!"));
+      }
+
+      // Minimal markdown renderer
+      function renderMarkdown(md) {
+        let html = escapeHtml(md);
+
+        // Headings
+        html = html.replace(/^### (.+)$/gm, "<h3>$1</h3>");
+        html = html.replace(/^## (.+)$/gm, "<h2>$1</h2>");
+        html = html.replace(/^# (.+)$/gm, "<h2>$1</h2>");
+
+        // Bold
+        html = html.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+
+        // Blockquotes
+        html = html.replace(/^&gt; (.+)$/gm, "<blockquote>$1</blockquote>");
+
+        // Unordered lists
+        html = html.replace(/^[-*] (.+)$/gm, "<li>$1</li>");
+        html = html.replace(/(<li>.*<\/li>\n?)+/gs, "<ul>$&</ul>");
+
+        // Ordered lists
+        html = html.replace(/^\d+\. (.+)$/gm, "<li>$1</li>");
+
+        // Line breaks & paragraphs
+        const lines = html.split("\n");
+        const result = [];
+        let i = 0;
+        while (i < lines.length) {
+          const line = lines[i];
+          if (
+            line.startsWith("<h") ||
+            line.startsWith("<ul") ||
+            line.startsWith("<blockquote") ||
+            line.startsWith("<li") ||
+            line === ""
+          ) {
+            result.push(line);
+          } else {
+            result.push(`<p>${line}</p>`);
+          }
+          i++;
+        }
+        return result.join("\n");
+      }
+
+      function escapeHtml(str) {
+        return String(str)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;");
+      }
+
+      function showToast(msg, type = "info") {
+        const el = document.getElementById("toast");
+        el.textContent = msg;
+        el.className = "toast show" + (type === "error" ? " error" : "");
+        setTimeout(() => { el.className = "toast"; }, 3000);
+      }
+
+      // Allow Cmd/Ctrl+Enter to add transcript
+      document.addEventListener("DOMContentLoaded", () => {
+        fetchTranscripts();
+        document.getElementById("transcript-input").addEventListener("keydown", (e) => {
+          if ((e.metaKey || e.ctrlKey) && e.key === "Enter") addTranscript();
+        });
+      });
+    </script>
+  </body>
+</html>
