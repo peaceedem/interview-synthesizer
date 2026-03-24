@@ -22,26 +22,16 @@
         align-items: baseline;
         gap: 12px;
       }
-
-      header h1 {
-        font-size: 22px;
-        font-weight: 700;
-        letter-spacing: -0.3px;
-      }
-
-      header .subtitle {
-        font-size: 14px;
-        color: #888;
-      }
+      header h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.3px; }
+      header .subtitle { font-size: 14px; color: #888; }
 
       .layout {
         display: grid;
-        grid-template-columns: 380px 1fr;
-        gap: 0;
+        grid-template-columns: 390px 1fr;
         min-height: calc(100vh - 65px);
       }
 
-      /* LEFT PANEL */
+      /* ── LEFT PANEL ── */
       .panel-left {
         background: #fff;
         border-right: 1px solid #e5e5e0;
@@ -51,24 +41,46 @@
       }
 
       .panel-section {
-        padding: 24px;
+        padding: 20px 22px;
         border-bottom: 1px solid #e5e5e0;
       }
 
       .panel-section h2 {
-        font-size: 13px;
+        font-size: 12px;
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 0.5px;
         color: #666;
-        margin-bottom: 14px;
+        margin-bottom: 12px;
       }
 
-      .field-group {
+      /* Mode tabs */
+      .mode-tabs {
         display: flex;
-        flex-direction: column;
-        gap: 10px;
+        background: #f0f0ea;
+        border-radius: 8px;
+        padding: 3px;
+        margin-bottom: 14px;
       }
+      .mode-tab {
+        flex: 1;
+        padding: 7px 10px;
+        border: none;
+        background: transparent;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        color: #666;
+        transition: all 0.15s;
+        font-family: inherit;
+      }
+      .mode-tab.active {
+        background: #fff;
+        color: #1a1a1a;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.10);
+      }
+      .mode-tab:hover:not(.active) { color: #333; }
 
       input[type="text"] {
         border: 1px solid #ddd;
@@ -76,14 +88,14 @@
         padding: 9px 12px;
         font-size: 14px;
         width: 100%;
-        transition: border-color 0.15s;
         font-family: inherit;
+        transition: border-color 0.15s;
+        margin-bottom: 10px;
       }
-
       input[type="text"]:focus {
         outline: none;
         border-color: #3b6ef8;
-        box-shadow: 0 0 0 3px rgba(59, 110, 248, 0.12);
+        box-shadow: 0 0 0 3px rgba(59,110,248,0.12);
       }
 
       textarea {
@@ -93,18 +105,122 @@
         font-size: 13.5px;
         width: 100%;
         resize: vertical;
-        min-height: 180px;
+        min-height: 160px;
         font-family: inherit;
         line-height: 1.55;
         transition: border-color 0.15s;
+        display: block;
       }
-
       textarea:focus {
         outline: none;
         border-color: #3b6ef8;
-        box-shadow: 0 0 0 3px rgba(59, 110, 248, 0.12);
+        box-shadow: 0 0 0 3px rgba(59,110,248,0.12);
+      }
+      .paste-hint {
+        font-size: 11px;
+        color: #bbb;
+        text-align: right;
+        margin-top: 5px;
       }
 
+      /* Dropzone */
+      .dropzone {
+        border: 2px dashed #d0d0c8;
+        border-radius: 10px;
+        padding: 28px 20px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.15s;
+        background: #fafaf8;
+        position: relative;
+      }
+      .dropzone:hover, .dropzone.dragover {
+        border-color: #3b6ef8;
+        background: #f0f4ff;
+      }
+      .dropzone input[type="file"] {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        cursor: pointer;
+        width: 100%;
+        height: 100%;
+      }
+      .dropzone-icon { font-size: 28px; margin-bottom: 8px; }
+      .dropzone-label { font-size: 14px; font-weight: 500; color: #444; margin-bottom: 4px; }
+      .dropzone-sub { font-size: 12px; color: #999; }
+      .dropzone-filename {
+        margin-top: 8px;
+        font-size: 12.5px;
+        color: #3b6ef8;
+        font-weight: 500;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      /* Progress */
+      .progress-area {
+        margin-top: 12px;
+        display: none;
+      }
+      .progress-area.visible { display: block; }
+      .progress-bar-track {
+        background: #eee;
+        border-radius: 20px;
+        height: 6px;
+        overflow: hidden;
+        margin-bottom: 8px;
+      }
+      .progress-bar-fill {
+        height: 100%;
+        border-radius: 20px;
+        background: #3b6ef8;
+        width: 0%;
+        transition: width 0.4s ease;
+      }
+      .progress-bar-fill.indeterminate {
+        width: 40%;
+        animation: slide 1.4s ease-in-out infinite;
+      }
+      @keyframes slide {
+        0%   { transform: translateX(-100%); }
+        100% { transform: translateX(350%); }
+      }
+      .progress-status {
+        font-size: 12.5px;
+        color: #666;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .progress-status.error { color: #c0392b; }
+      .progress-status.success { color: #1a9e6a; }
+      .spinner {
+        width: 12px; height: 12px;
+        border: 2px solid #ddd;
+        border-top-color: #3b6ef8;
+        border-radius: 50%;
+        animation: spin 0.7s linear infinite;
+        flex-shrink: 0;
+      }
+      @keyframes spin { to { transform: rotate(360deg); } }
+
+      /* Transcript preview after transcription */
+      .transcript-preview {
+        margin-top: 12px;
+        display: none;
+      }
+      .transcript-preview.visible { display: block; }
+      .transcript-preview label {
+        font-size: 12px;
+        font-weight: 600;
+        color: #666;
+        display: block;
+        margin-bottom: 5px;
+      }
+
+      /* Buttons */
       .btn {
         display: inline-flex;
         align-items: center;
@@ -119,73 +235,25 @@
         transition: background 0.15s, opacity 0.15s;
         font-family: inherit;
       }
-
-      .btn:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-      }
-
-      .btn-primary {
-        background: #3b6ef8;
-        color: #fff;
-        width: 100%;
-      }
-
+      .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+      .btn-primary { background: #3b6ef8; color: #fff; width: 100%; margin-top: 10px; }
       .btn-primary:hover:not(:disabled) { background: #2a5de8; }
-
-      .btn-success {
-        background: #1a9e6a;
-        color: #fff;
-        width: 100%;
-        font-size: 15px;
-        padding: 12px 16px;
-      }
-
+      .btn-success { background: #1a9e6a; color: #fff; width: 100%; font-size: 15px; padding: 12px 16px; }
       .btn-success:hover:not(:disabled) { background: #148d5c; }
-
-      .btn-ghost {
-        background: transparent;
-        color: #888;
-        border: 1px solid #e0e0e0;
-        padding: 5px 10px;
-        font-size: 12px;
-      }
-
-      .btn-ghost:hover:not(:disabled) {
-        background: #f5f5f0;
-        color: #444;
-      }
-
-      .btn-danger-ghost {
-        background: transparent;
-        color: #e05252;
-        border: 1px solid #fad9d9;
-        font-size: 12px;
-        padding: 5px 10px;
-      }
-
-      .btn-danger-ghost:hover:not(:disabled) {
-        background: #fff5f5;
-      }
+      .btn-ghost { background: transparent; color: #888; border: 1px solid #e0e0e0; padding: 5px 10px; font-size: 12px; }
+      .btn-ghost:hover:not(:disabled) { background: #f5f5f0; color: #444; }
+      .btn-danger-ghost { background: transparent; color: #e05252; border: 1px solid #fad9d9; font-size: 12px; padding: 5px 10px; }
+      .btn-danger-ghost:hover:not(:disabled) { background: #fff5f5; }
 
       /* Transcript list */
-      .transcripts-area {
-        flex: 1;
-        overflow-y: auto;
-        padding: 16px;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-      }
-
       .transcripts-header {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 14px 24px 0;
+        padding: 14px 22px 0;
       }
-
-      .transcripts-header .count-badge {
+      .transcripts-header span { font-size: 13px; font-weight: 600; color: #555; }
+      .count-badge {
         background: #3b6ef8;
         color: #fff;
         font-size: 12px;
@@ -194,231 +262,103 @@
         border-radius: 20px;
       }
 
+      .transcripts-area {
+        flex: 1;
+        overflow-y: auto;
+        padding: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
       .transcript-card {
         background: #f9f9f7;
         border: 1px solid #e8e8e3;
         border-radius: 8px;
-        padding: 12px 14px;
+        padding: 11px 13px;
         display: flex;
         justify-content: space-between;
         align-items: flex-start;
-        gap: 10px;
+        gap: 8px;
         transition: border-color 0.15s;
       }
-
-      .transcript-card:hover {
-        border-color: #c8c8c0;
-      }
-
+      .transcript-card:hover { border-color: #c8c8c0; }
       .transcript-card .card-body { flex: 1; min-width: 0; }
+      .transcript-card .card-label { font-size: 13px; font-weight: 600; color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .transcript-card .card-meta { font-size: 11.5px; color: #aaa; margin-top: 2px; }
+      .transcript-card .card-preview { font-size: 12px; color: #888; margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-      .transcript-card .card-label {
-        font-size: 13.5px;
-        font-weight: 600;
-        color: #333;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
+      .empty-state { text-align: center; color: #aaa; font-size: 14px; padding: 36px 20px; }
+      .empty-state .empty-icon { font-size: 32px; margin-bottom: 10px; opacity: 0.4; }
 
-      .transcript-card .card-preview {
-        font-size: 12.5px;
-        color: #888;
-        margin-top: 4px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-
-      .transcript-card .card-date {
-        font-size: 11px;
-        color: #aaa;
-        margin-top: 3px;
-      }
-
-      .empty-state {
-        text-align: center;
-        color: #aaa;
-        font-size: 14px;
-        padding: 40px 20px;
-      }
-
-      .empty-state .empty-icon {
-        font-size: 36px;
-        margin-bottom: 10px;
-        opacity: 0.4;
-      }
-
-      /* Synthesize section */
       .synthesize-section {
-        padding: 20px 24px;
+        padding: 18px 22px;
         border-top: 1px solid #e5e5e0;
         background: #fafaf8;
       }
+      .synthesize-section .hint { font-size: 12px; color: #aaa; text-align: center; margin-top: 7px; }
 
-      .synthesize-section .hint {
-        font-size: 12px;
-        color: #aaa;
-        text-align: center;
-        margin-top: 8px;
-      }
-
-      /* RIGHT PANEL */
-      .panel-right {
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-      }
+      /* ── RIGHT PANEL ── */
+      .panel-right { display: flex; flex-direction: column; overflow: hidden; }
 
       .results-header {
-        padding: 20px 28px 16px;
+        padding: 18px 28px 14px;
         border-bottom: 1px solid #e5e5e0;
         background: #fff;
         display: flex;
         align-items: center;
         justify-content: space-between;
       }
-
-      .results-header h2 {
-        font-size: 16px;
-        font-weight: 600;
-      }
+      .results-header h2 { font-size: 16px; font-weight: 600; }
 
       .status-dot {
-        width: 8px;
-        height: 8px;
+        width: 8px; height: 8px;
         border-radius: 50%;
         background: #ccc;
         display: inline-block;
         margin-right: 6px;
       }
-
       .status-dot.active {
         background: #1a9e6a;
         animation: pulse 1.2s ease-in-out infinite;
       }
+      @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
 
-      @keyframes pulse {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0.4; }
-      }
-
-      .results-body {
-        flex: 1;
-        overflow-y: auto;
-        padding: 28px 32px;
-      }
+      .results-body { flex: 1; overflow-y: auto; padding: 28px 32px; }
 
       .placeholder-state {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        height: 100%;
-        color: #bbb;
-        gap: 12px;
-        text-align: center;
+        display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+        height: 100%; color: #bbb; gap: 12px; text-align: center;
       }
+      .placeholder-state .placeholder-icon { font-size: 48px; opacity: 0.3; }
+      .placeholder-state p { font-size: 15px; max-width: 280px; line-height: 1.5; }
 
-      .placeholder-state .placeholder-icon {
-        font-size: 48px;
-        opacity: 0.3;
-      }
-
-      .placeholder-state p {
-        font-size: 15px;
-        max-width: 280px;
-        line-height: 1.5;
-      }
-
-      /* Rendered markdown output */
-      #output {
-        font-size: 15px;
-        line-height: 1.7;
-        color: #1a1a1a;
-      }
-
-      #output h2 {
-        font-size: 18px;
-        font-weight: 700;
-        margin: 28px 0 12px;
-        padding-bottom: 8px;
-        border-bottom: 2px solid #e8e8e0;
-        color: #111;
-      }
-
+      #output { font-size: 15px; line-height: 1.7; color: #1a1a1a; }
+      #output h2 { font-size: 18px; font-weight: 700; margin: 28px 0 12px; padding-bottom: 8px; border-bottom: 2px solid #e8e8e0; color: #111; }
       #output h2:first-child { margin-top: 0; }
-
-      #output h3 {
-        font-size: 15px;
-        font-weight: 600;
-        margin: 18px 0 8px;
-        color: #333;
-      }
-
-      #output p {
-        margin-bottom: 12px;
-        color: #333;
-      }
-
-      #output ul, #output ol {
-        padding-left: 22px;
-        margin-bottom: 14px;
-      }
-
-      #output li {
-        margin-bottom: 6px;
-        color: #333;
-      }
-
-      #output strong {
-        font-weight: 600;
-        color: #111;
-      }
-
-      #output blockquote {
-        border-left: 3px solid #3b6ef8;
-        margin: 14px 0;
-        padding: 10px 16px;
-        background: #f0f4ff;
-        border-radius: 0 6px 6px 0;
-        font-style: italic;
-        color: #444;
-      }
-
-      #output code {
-        background: #f0f0ea;
-        padding: 1px 5px;
-        border-radius: 4px;
-        font-size: 13px;
-      }
+      #output h3 { font-size: 15px; font-weight: 600; margin: 18px 0 8px; color: #333; }
+      #output p { margin-bottom: 12px; color: #333; }
+      #output ul, #output ol { padding-left: 22px; margin-bottom: 14px; }
+      #output li { margin-bottom: 6px; color: #333; }
+      #output strong { font-weight: 600; color: #111; }
+      #output blockquote { border-left: 3px solid #3b6ef8; margin: 14px 0; padding: 10px 16px; background: #f0f4ff; border-radius: 0 6px 6px 0; font-style: italic; color: #444; }
 
       .toast {
-        position: fixed;
-        bottom: 24px;
-        right: 24px;
-        background: #1a1a1a;
-        color: #fff;
-        padding: 10px 16px;
-        border-radius: 8px;
-        font-size: 13.5px;
-        opacity: 0;
+        position: fixed; bottom: 24px; right: 24px;
+        background: #1a1a1a; color: #fff;
+        padding: 10px 16px; border-radius: 8px;
+        font-size: 13.5px; opacity: 0;
         transform: translateY(8px);
         transition: opacity 0.2s, transform 0.2s;
-        pointer-events: none;
-        z-index: 100;
+        pointer-events: none; z-index: 100;
       }
-
-      .toast.show {
-        opacity: 1;
-        transform: translateY(0);
-      }
-
+      .toast.show { opacity: 1; transform: translateY(0); }
       .toast.error { background: #c0392b; }
 
       @media (max-width: 800px) {
         .layout { grid-template-columns: 1fr; }
-        .panel-left { max-height: 55vh; }
+        .panel-left { max-height: 60vh; }
       }
     </style>
   </head>
@@ -429,35 +369,69 @@
     </header>
 
     <div class="layout">
-      <!-- LEFT: Input + transcript list -->
+      <!-- LEFT: Input + list -->
       <div class="panel-left">
         <div class="panel-section">
           <h2>Add Transcript</h2>
-          <div class="field-group">
-            <input
-              type="text"
-              id="label-input"
-              placeholder="Label (e.g. Sarah – Product Manager)"
-            />
-            <textarea
-              id="transcript-input"
-              placeholder="Paste interview transcript here…"
-            ></textarea>
-            <button class="btn btn-primary" id="add-btn" onclick="addTranscript()">
-              + Add Transcript
-            </button>
+
+          <input type="text" id="label-input" placeholder="Label (e.g. Sarah – Product Manager)" />
+
+          <!-- Mode tabs -->
+          <div class="mode-tabs">
+            <button class="mode-tab active" id="tab-paste" onclick="setMode('paste')">✏️ Paste Text</button>
+            <button class="mode-tab" id="tab-upload" onclick="setMode('upload')">🎤 Upload File</button>
           </div>
+
+          <!-- Paste mode -->
+          <div id="paste-mode">
+            <textarea id="transcript-input" placeholder="Paste interview transcript here…"></textarea>
+            <div class="paste-hint">Cmd+Enter to add</div>
+          </div>
+
+          <!-- Upload mode -->
+          <div id="upload-mode" style="display:none">
+            <div class="dropzone" id="dropzone"
+                 ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event)">
+              <input type="file" id="file-input" accept=".mp3,.mp4,.m4a,.wav,.webm,.ogg,.flac"
+                     onchange="onFileSelected(event)" />
+              <div class="dropzone-icon">🎙️</div>
+              <div class="dropzone-label">Drop audio or video here</div>
+              <div class="dropzone-sub">or click to browse · MP3, MP4, M4A, WAV, WebM</div>
+              <div class="dropzone-filename" id="dropzone-filename"></div>
+            </div>
+
+            <!-- Progress -->
+            <div class="progress-area" id="progress-area">
+              <div class="progress-bar-track">
+                <div class="progress-bar-fill indeterminate" id="progress-fill"></div>
+              </div>
+              <div class="progress-status" id="progress-status">
+                <div class="spinner" id="progress-spinner"></div>
+                <span id="progress-text">Uploading…</span>
+              </div>
+            </div>
+
+            <!-- Transcript preview after transcription -->
+            <div class="transcript-preview" id="transcript-preview">
+              <label>Transcript (edit before adding)</label>
+              <textarea id="transcript-result" style="min-height:130px"></textarea>
+            </div>
+          </div>
+
+          <button class="btn btn-primary" id="add-btn" onclick="addTranscript()">
+            + Add Transcript
+          </button>
         </div>
 
+        <!-- List -->
         <div class="transcripts-header">
-          <span style="font-size:13px;font-weight:600;color:#555">Saved Transcripts</span>
+          <span>Saved Transcripts</span>
           <span class="count-badge" id="count-badge">0</span>
         </div>
-
         <div class="transcripts-area" id="transcript-list">
           <div class="empty-state">
             <div class="empty-icon">📋</div>
-            <div>No transcripts yet.<br />Add one above to get started.</div>
+            <div>No transcripts yet.<br/>Add one above to get started.</div>
           </div>
         </div>
 
@@ -472,13 +446,8 @@
       <!-- RIGHT: Results -->
       <div class="panel-right">
         <div class="results-header">
-          <h2>
-            <span class="status-dot" id="status-dot"></span>
-            Synthesis Results
-          </h2>
-          <button class="btn btn-ghost" id="copy-btn" onclick="copyResults()" style="display:none">
-            Copy
-          </button>
+          <h2><span class="status-dot" id="status-dot"></span>Synthesis Results</h2>
+          <button class="btn btn-ghost" id="copy-btn" onclick="copyResults()" style="display:none">Copy</button>
         </div>
         <div class="results-body" id="results-body">
           <div class="placeholder-state" id="placeholder">
@@ -494,52 +463,139 @@
 
     <script>
       let transcripts = [];
+      let currentMode = "paste";
+      let transcribedText = "";
 
-      async function fetchTranscripts() {
-        const res = await fetch("/api/transcripts");
-        const data = await res.json();
-        transcripts = data.transcripts;
-        renderTranscripts();
+      // ── Mode toggle ───────────────────────────────────────────────────────
+
+      function setMode(mode) {
+        currentMode = mode;
+        document.getElementById("tab-paste").classList.toggle("active", mode === "paste");
+        document.getElementById("tab-upload").classList.toggle("active", mode === "upload");
+        document.getElementById("paste-mode").style.display = mode === "paste" ? "block" : "none";
+        document.getElementById("upload-mode").style.display = mode === "upload" ? "block" : "none";
+        if (mode === "upload") resetUploadUI();
       }
 
-      function renderTranscripts() {
-        const list = document.getElementById("transcript-list");
-        const badge = document.getElementById("count-badge");
-        const synthesizeBtn = document.getElementById("synthesize-btn");
-        const hint = document.getElementById("synthesize-hint");
+      function resetUploadUI() {
+        transcribedText = "";
+        document.getElementById("dropzone-filename").textContent = "";
+        document.getElementById("file-input").value = "";
+        document.getElementById("progress-area").classList.remove("visible");
+        document.getElementById("transcript-preview").classList.remove("visible");
+        document.getElementById("transcript-result").value = "";
+        document.getElementById("add-btn").disabled = false;
+      }
 
-        badge.textContent = transcripts.length;
+      // ── Drag & drop ───────────────────────────────────────────────────────
 
-        if (transcripts.length === 0) {
-          list.innerHTML = `<div class="empty-state">
-            <div class="empty-icon">📋</div>
-            <div>No transcripts yet.<br/>Add one above to get started.</div>
-          </div>`;
-          synthesizeBtn.disabled = true;
-          hint.textContent = "Add at least 1 transcript to synthesize";
+      function onDragOver(e) {
+        e.preventDefault();
+        document.getElementById("dropzone").classList.add("dragover");
+      }
+      function onDragLeave(e) {
+        document.getElementById("dropzone").classList.remove("dragover");
+      }
+      function onDrop(e) {
+        e.preventDefault();
+        document.getElementById("dropzone").classList.remove("dragover");
+        const file = e.dataTransfer.files[0];
+        if (file) handleFile(file);
+      }
+      function onFileSelected(e) {
+        const file = e.target.files[0];
+        if (file) handleFile(file);
+      }
+
+      // ── File handling & transcription ─────────────────────────────────────
+
+      async function handleFile(file) {
+        document.getElementById("dropzone-filename").textContent = file.name;
+        document.getElementById("transcript-preview").classList.remove("visible");
+        document.getElementById("transcript-result").value = "";
+        transcribedText = "";
+        showProgress("Uploading file…", "active");
+
+        // 1. Upload the file
+        let file_id;
+        try {
+          const form = new FormData();
+          form.append("file", file);
+          const res = await fetch("/api/upload", { method: "POST", body: form });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || "Upload failed.");
+          file_id = data.file_id;
+        } catch (err) {
+          showProgress(err.message, "error");
           return;
         }
 
-        synthesizeBtn.disabled = false;
-        hint.textContent = `${transcripts.length} transcript${transcripts.length > 1 ? "s" : ""} ready`;
+        // 2. Stream transcription progress
+        showProgress("File uploaded. Connecting to transcription…", "active");
+        const es = new EventSource(`/api/transcribe/${file_id}`);
 
-        list.innerHTML = transcripts.map(t => `
-          <div class="transcript-card">
-            <div class="card-body">
-              <div class="card-label">${escapeHtml(t.label)}</div>
-              <div class="card-preview">${escapeHtml(t.text.slice(0, 90))}${t.text.length > 90 ? "…" : ""}</div>
-              <div class="card-date">${new Date(t.addedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</div>
-            </div>
-            <button class="btn btn-danger-ghost" onclick="deleteTranscript(${t.id})">✕</button>
-          </div>
-        `).join("");
+        es.onmessage = (e) => {
+          const data = JSON.parse(e.data);
+
+          if (data.status === "loading") {
+            showProgress(data.message, "active");
+          } else if (data.status === "transcribing") {
+            showProgress(data.message, "active");
+          } else if (data.status === "done") {
+            es.close();
+            transcribedText = data.transcript;
+            document.getElementById("transcript-result").value = data.transcript;
+            document.getElementById("transcript-preview").classList.add("visible");
+            showProgress("Transcription complete ✓", "success");
+            document.getElementById("add-btn").disabled = false;
+          } else if (data.status === "error") {
+            es.close();
+            showProgress("Error: " + data.message, "error");
+          }
+        };
+
+        es.onerror = () => {
+          es.close();
+          showProgress("Connection lost during transcription.", "error");
+        };
       }
 
+      function showProgress(message, state) {
+        const area = document.getElementById("progress-area");
+        const fill = document.getElementById("progress-fill");
+        const statusEl = document.getElementById("progress-status");
+        const text = document.getElementById("progress-text");
+        const spinner = document.getElementById("progress-spinner");
+
+        area.classList.add("visible");
+        text.textContent = message;
+        statusEl.className = "progress-status" + (state === "error" ? " error" : state === "success" ? " success" : "");
+        spinner.style.display = (state === "active") ? "block" : "none";
+
+        fill.className = "progress-bar-fill" + (state === "active" ? " indeterminate" : "");
+        if (state === "success") fill.style.width = "100%";
+        if (state === "error") { fill.style.width = "100%"; fill.style.background = "#e05252"; }
+      }
+
+      // ── Add transcript ────────────────────────────────────────────────────
+
       async function addTranscript() {
-        const text = document.getElementById("transcript-input").value.trim();
-        const label = document.getElementById("label-input").value.trim();
+        let text, label;
+
+        if (currentMode === "paste") {
+          text = document.getElementById("transcript-input").value.trim();
+        } else {
+          text = document.getElementById("transcript-result").value.trim();
+          if (!text && !transcribedText) {
+            showToast("Please upload and transcribe a file first.", "error");
+            return;
+          }
+        }
+
+        label = document.getElementById("label-input").value.trim();
+
         if (!text) {
-          showToast("Please paste a transcript first.", "error");
+          showToast("No transcript text to add.", "error");
           return;
         }
 
@@ -557,15 +613,61 @@
           if (!res.ok) throw new Error(data.error);
           transcripts = [...transcripts, data.transcript];
           renderTranscripts();
+
+          // Reset inputs
           document.getElementById("transcript-input").value = "";
           document.getElementById("label-input").value = "";
+          if (currentMode === "upload") resetUploadUI();
+
           showToast(`"${data.transcript.label}" added.`);
         } catch (err) {
-          showToast(err.message || "Failed to add transcript.", "error");
+          showToast(err.message || "Failed to add.", "error");
         } finally {
           btn.disabled = false;
           btn.textContent = "+ Add Transcript";
         }
+      }
+
+      // ── Transcript list ───────────────────────────────────────────────────
+
+      async function fetchTranscripts() {
+        const res = await fetch("/api/transcripts");
+        const data = await res.json();
+        transcripts = data.transcripts;
+        renderTranscripts();
+      }
+
+      function renderTranscripts() {
+        const list = document.getElementById("transcript-list");
+        const badge = document.getElementById("count-badge");
+        const btn = document.getElementById("synthesize-btn");
+        const hint = document.getElementById("synthesize-hint");
+
+        badge.textContent = transcripts.length;
+
+        if (transcripts.length === 0) {
+          list.innerHTML = `<div class="empty-state">
+            <div class="empty-icon">📋</div>
+            <div>No transcripts yet.<br/>Add one above to get started.</div>
+          </div>`;
+          btn.disabled = true;
+          hint.textContent = "Add at least 1 transcript to synthesize";
+          return;
+        }
+
+        btn.disabled = false;
+        hint.textContent = `${transcripts.length} transcript${transcripts.length > 1 ? "s" : ""} ready`;
+
+        list.innerHTML = transcripts.map(t => `
+          <div class="transcript-card">
+            <div class="card-body">
+              <div class="card-label">${esc(t.label)}</div>
+              <div class="card-preview">${esc(t.text.slice(0, 80))}${t.text.length > 80 ? "…" : ""}</div>
+              <div class="card-meta">${new Date(t.addedAt).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"})}</div>
+            </div>
+            <button class="btn btn-danger-ghost" onclick="deleteTranscript(${t.id})">✕</button>
+          </div>
+        `).join("");
       }
 
       async function deleteTranscript(id) {
@@ -575,11 +677,13 @@
           if (!res.ok) throw new Error(data.error);
           transcripts = transcripts.filter(t => t.id !== id);
           renderTranscripts();
-          showToast("Transcript removed.");
+          showToast("Removed.");
         } catch (err) {
           showToast(err.message || "Failed to delete.", "error");
         }
       }
+
+      // ── Synthesis ─────────────────────────────────────────────────────────
 
       async function runSynthesis() {
         const btn = document.getElementById("synthesize-btn");
@@ -597,42 +701,29 @@
         copyBtn.style.display = "none";
 
         let rawText = "";
+        const es = new EventSource("/api/synthesize");
 
-        try {
-          const es = new EventSource("/api/synthesize");
-
-          es.onmessage = (e) => {
-            const data = JSON.parse(e.data);
-            if (data.done) {
-              es.close();
-              finishSynthesis(btn, dot, copyBtn);
-              return;
-            }
-            if (data.error) {
-              es.close();
-              showToast(data.error, "error");
-              finishSynthesis(btn, dot, copyBtn);
-              return;
-            }
-            if (data.text) {
-              rawText += data.text;
-              output.innerHTML = renderMarkdown(rawText);
-              document.getElementById("results-body").scrollTop =
-                document.getElementById("results-body").scrollHeight;
-            }
-          };
-
-          es.onerror = () => {
+        es.onmessage = (e) => {
+          const data = JSON.parse(e.data);
+          if (data.done) {
             es.close();
-            if (!rawText) {
-              showToast("Connection error. Is ANTHROPIC_API_KEY set?", "error");
-            }
             finishSynthesis(btn, dot, copyBtn);
-          };
-        } catch (err) {
-          showToast(err.message || "Synthesis failed.", "error");
+          } else if (data.error) {
+            es.close();
+            showToast(data.error, "error");
+            finishSynthesis(btn, dot, copyBtn);
+          } else if (data.text) {
+            rawText += data.text;
+            output.innerHTML = renderMarkdown(rawText);
+            document.getElementById("results-body").scrollTop =
+              document.getElementById("results-body").scrollHeight;
+          }
+        };
+
+        es.onerror = () => {
+          es.close();
           finishSynthesis(btn, dot, copyBtn);
-        }
+        };
       }
 
       function finishSynthesis(btn, dot, copyBtn) {
@@ -643,73 +734,47 @@
       }
 
       function copyResults() {
-        const text = document.getElementById("output").innerText;
-        navigator.clipboard.writeText(text).then(() => showToast("Copied to clipboard!"));
+        navigator.clipboard.writeText(document.getElementById("output").innerText)
+          .then(() => showToast("Copied to clipboard!"));
       }
 
-      // Minimal markdown renderer
-      function renderMarkdown(md) {
-        let html = escapeHtml(md);
+      // ── Markdown renderer ─────────────────────────────────────────────────
 
-        // Headings
+      function renderMarkdown(md) {
+        let html = esc(md);
         html = html.replace(/^### (.+)$/gm, "<h3>$1</h3>");
         html = html.replace(/^## (.+)$/gm, "<h2>$1</h2>");
         html = html.replace(/^# (.+)$/gm, "<h2>$1</h2>");
-
-        // Bold
         html = html.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
-
-        // Blockquotes
+        html = html.replace(/\*(.+?)\*/g, "<em>$1</em>");
         html = html.replace(/^&gt; (.+)$/gm, "<blockquote>$1</blockquote>");
-
-        // Unordered lists
         html = html.replace(/^[-*] (.+)$/gm, "<li>$1</li>");
         html = html.replace(/(<li>.*<\/li>\n?)+/gs, "<ul>$&</ul>");
-
-        // Ordered lists
         html = html.replace(/^\d+\. (.+)$/gm, "<li>$1</li>");
-
-        // Line breaks & paragraphs
-        const lines = html.split("\n");
-        const result = [];
-        let i = 0;
-        while (i < lines.length) {
-          const line = lines[i];
-          if (
-            line.startsWith("<h") ||
-            line.startsWith("<ul") ||
-            line.startsWith("<blockquote") ||
-            line.startsWith("<li") ||
-            line === ""
-          ) {
-            result.push(line);
-          } else {
-            result.push(`<p>${line}</p>`);
-          }
-          i++;
-        }
-        return result.join("\n");
+        return html.split("\n").map(line => {
+          if (/^<(h[23]|ul|blockquote|li)/.test(line) || line === "") return line;
+          return `<p>${line}</p>`;
+        }).join("\n");
       }
 
-      function escapeHtml(str) {
+      function esc(str) {
         return String(str)
-          .replace(/&/g, "&amp;")
-          .replace(/</g, "&lt;")
-          .replace(/>/g, "&gt;")
-          .replace(/"/g, "&quot;");
+          .replace(/&/g,"&amp;").replace(/</g,"&lt;")
+          .replace(/>/g,"&gt;").replace(/"/g,"&quot;");
       }
 
       function showToast(msg, type = "info") {
         const el = document.getElementById("toast");
         el.textContent = msg;
         el.className = "toast show" + (type === "error" ? " error" : "");
-        setTimeout(() => { el.className = "toast"; }, 3000);
+        setTimeout(() => { el.className = "toast"; }, 3200);
       }
 
-      // Allow Cmd/Ctrl+Enter to add transcript
+      // ── Init ──────────────────────────────────────────────────────────────
+
       document.addEventListener("DOMContentLoaded", () => {
         fetchTranscripts();
-        document.getElementById("transcript-input").addEventListener("keydown", (e) => {
+        document.getElementById("transcript-input").addEventListener("keydown", e => {
           if ((e.metaKey || e.ctrlKey) && e.key === "Enter") addTranscript();
         });
       });
