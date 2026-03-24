@@ -84,7 +84,7 @@ Anything that would slow adoption, cause hesitation, or lead to churn. For each:
 Be ruthlessly specific. If you see a pattern in only one interview, say so. If something is unclear from the transcripts, say so rather than speculating. The product team is depending on this to make real decisions."""
 
     with client.messages.stream(
-        model="claude-opus-4-6",
+        model="claude-sonnet-4-5",
         max_tokens=8000,
         thinking={"type": "adaptive"},
         messages=[{"role": "user", "content": prompt}],
