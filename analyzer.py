@@ -86,7 +86,6 @@ Be ruthlessly specific. If you see a pattern in only one interview, say so. If s
     with client.messages.stream(
         model="claude-sonnet-4-5",
         max_tokens=8000,
-        thinking={"type": "adaptive"},
         messages=[{"role": "user", "content": prompt}],
     ) as stream:
         for text in stream.text_stream:
