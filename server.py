@@ -225,9 +225,8 @@ def synthesize_route():
     @stream_with_context
     def generate():
         try:
-            report = synthesize(transcripts)
-            for line in report.split("\n"):
-                yield f"data: {json.dumps({'text': line + chr(10)})}\n\n"
+            for chunk in synthesize(transcripts):
+                yield f"data: {json.dumps({'text': chunk})}\n\n"
             yield f"data: {json.dumps({'done': True})}\n\n"
         except Exception as e:
             yield f"data: {json.dumps({'error': str(e)})}\n\n"
