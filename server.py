@@ -1,6 +1,7 @@
 import json
 import os
 import tempfile
+import threading
 import time
 import uuid
 from pathlib import Path
@@ -43,7 +44,7 @@ def _patch_whisper_ffmpeg():
 
 _patch_whisper_ffmpeg()
 
-from flask import Flask, Response, jsonify, request, send_from_directory, stream_with_context
+from flask import Flask, Response, jsonify, request, send_from_directory, stream_with_context  # stream_with_context used by synthesize
 from analyzer import synthesize
 
 app = Flask(__name__, static_folder="public")
@@ -55,16 +56,42 @@ TEMP_DIR.mkdir(exist_ok=True)
 
 ALLOWED_EXTENSIONS = {".mp3", ".mp4", ".m4a", ".wav", ".webm", ".ogg", ".flac"}
 
+# ── Background job registry ──────────────────────────────────────────────────
+# job_id -> {status, message, transcript, created_at}
+# status: "pending" | "processing" | "done" | "error"
+_jobs: dict = {}
+_jobs_lock = threading.Lock()
+
+
+def _set_job(job_id: str, **fields):
+    with _jobs_lock:
+        _jobs[job_id].update(fields)
+
+
+def _run_transcription(job_id: str, audio_path: Path):
+    """Runs in a background thread. Updates _jobs[job_id] as it progresses."""
+    try:
+        _set_job(job_id, status="processing", message="Loading Whisper model…")
+        import whisper
+        global _whisper_model
+        if _whisper_model is None:
+            _whisper_model = whisper.load_model("base")
+        model = _whisper_model
+
+        _set_job(job_id, message="Transcribing audio…")
+        result = model.transcribe(str(audio_path), fp16=False)
+        transcript = result["text"].strip()
+
+        audio_path.unlink(missing_ok=True)
+        _set_job(job_id, status="done", message="Transcription complete.", transcript=transcript)
+
+    except Exception as e:
+        audio_path.unlink(missing_ok=True)
+        _set_job(job_id, status="error", message=str(e))
+
+
 # Cache the Whisper model in memory after first load
 _whisper_model = None
-
-
-def get_whisper_model():
-    global _whisper_model
-    if _whisper_model is None:
-        import whisper
-        _whisper_model = whisper.load_model("base")
-    return _whisper_model
 
 
 def load_transcripts():
@@ -78,11 +105,6 @@ def load_transcripts():
 
 def save_transcripts(transcripts):
     DATA_FILE.write_text(json.dumps(transcripts, indent=2))
-
-
-def sse(status, message="", **extra):
-    payload = {"status": status, "message": message, **extra}
-    return f"data: {json.dumps(payload)}\n\n"
 
 
 # ── Static ──────────────────────────────────────────────────────────────────
@@ -135,7 +157,7 @@ def clear_transcripts():
     return jsonify({"success": True, "count": 0})
 
 
-# ── File upload ──────────────────────────────────────────────────────────────
+# ── File upload — saves file and starts background transcription job ──────────
 
 @app.post("/api/upload")
 def upload_file():
@@ -152,49 +174,44 @@ def upload_file():
             "error": f"Unsupported format '{ext}'. Allowed: {', '.join(sorted(ALLOWED_EXTENSIONS))}"
         }), 400
 
-    file_id = str(uuid.uuid4())
-    dest = TEMP_DIR / f"{file_id}{ext}"
-    f.save(str(dest))
-    return jsonify({"file_id": file_id, "filename": f.filename})
+    job_id = str(uuid.uuid4())
+    audio_path = TEMP_DIR / f"{job_id}{ext}"
+    f.save(str(audio_path))
+
+    with _jobs_lock:
+        _jobs[job_id] = {
+            "status": "pending",
+            "message": "Queued for transcription…",
+            "transcript": None,
+            "created_at": time.time(),
+        }
+
+    thread = threading.Thread(target=_run_transcription, args=(job_id, audio_path), daemon=True)
+    thread.start()
+
+    return jsonify({"job_id": job_id, "filename": f.filename})
 
 
-# ── Whisper transcription (SSE) ──────────────────────────────────────────────
+# ── Job status polling ────────────────────────────────────────────────────────
 
-@app.get("/api/transcribe/<file_id>")
-def transcribe_file(file_id):
-    # Validate file_id is a UUID to prevent path traversal
+@app.get("/api/job/<job_id>")
+def job_status(job_id):
     try:
-        uuid.UUID(file_id)
+        uuid.UUID(job_id)
     except ValueError:
-        return jsonify({"error": "Invalid file ID."}), 400
+        return jsonify({"error": "Invalid job ID."}), 400
 
-    matches = list(TEMP_DIR.glob(f"{file_id}.*"))
-    if not matches:
-        return jsonify({"error": "Upload not found. Please re-upload the file."}), 404
+    with _jobs_lock:
+        job = _jobs.get(job_id)
 
-    audio_path = matches[0]
+    if not job:
+        return jsonify({"error": "Job not found."}), 404
 
-    @stream_with_context
-    def generate():
-        try:
-            yield sse("loading", "Loading Whisper model — this may take a moment on first run…")
-
-            model = get_whisper_model()
-
-            yield sse("transcribing", "Transcribing audio… longer recordings may take a few minutes.")
-
-            result = model.transcribe(str(audio_path), fp16=False)
-            transcript = result["text"].strip()
-
-            audio_path.unlink(missing_ok=True)
-            yield sse("done", "Transcription complete.", transcript=transcript)
-
-        except Exception as e:
-            audio_path.unlink(missing_ok=True)
-            yield sse("error", str(e))
-
-    return Response(generate(), content_type="text/event-stream",
-                    headers={"X-Accel-Buffering": "no"})
+    return jsonify({
+        "status": job["status"],
+        "message": job["message"],
+        "transcript": job.get("transcript"),
+    })
 
 
 # ── Synthesis (SSE) ──────────────────────────────────────────────────────────

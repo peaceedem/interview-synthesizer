@@ -516,48 +516,51 @@
         transcribedText = "";
         showProgress("Uploading file…", "active");
 
-        // 1. Upload the file
-        let file_id;
+        // 1. Upload — server saves file and starts background job immediately
+        let job_id;
         try {
           const form = new FormData();
           form.append("file", file);
           const res = await fetch("/api/upload", { method: "POST", body: form });
           const data = await res.json();
           if (!res.ok) throw new Error(data.error || "Upload failed.");
-          file_id = data.file_id;
+          job_id = data.job_id;
         } catch (err) {
           showProgress(err.message, "error");
           return;
         }
 
-        // 2. Stream transcription progress
-        showProgress("File uploaded. Connecting to transcription…", "active");
-        const es = new EventSource(`/api/transcribe/${file_id}`);
+        // 2. Poll /api/job/<job_id> every 3 s until done or error
+        showProgress("File uploaded — transcription running in the background…", "active");
+        document.getElementById("add-btn").disabled = true;
 
-        es.onmessage = (e) => {
-          const data = JSON.parse(e.data);
+        const pollInterval = setInterval(async () => {
+          try {
+            const res = await fetch(`/api/job/${job_id}`);
+            const data = await res.json();
 
-          if (data.status === "loading") {
-            showProgress(data.message, "active");
-          } else if (data.status === "transcribing") {
-            showProgress(data.message, "active");
-          } else if (data.status === "done") {
-            es.close();
-            transcribedText = data.transcript;
-            document.getElementById("transcript-result").value = data.transcript;
-            document.getElementById("transcript-preview").classList.add("visible");
-            showProgress("Transcription complete ✓", "success");
+            if (!res.ok) throw new Error(data.error || "Job lookup failed.");
+
+            if (data.status === "pending" || data.status === "processing") {
+              showProgress(data.message, "active");
+            } else if (data.status === "done") {
+              clearInterval(pollInterval);
+              transcribedText = data.transcript;
+              document.getElementById("transcript-result").value = data.transcript;
+              document.getElementById("transcript-preview").classList.add("visible");
+              showProgress("Transcription complete ✓", "success");
+              document.getElementById("add-btn").disabled = false;
+            } else if (data.status === "error") {
+              clearInterval(pollInterval);
+              showProgress("Error: " + data.message, "error");
+              document.getElementById("add-btn").disabled = false;
+            }
+          } catch (err) {
+            clearInterval(pollInterval);
+            showProgress("Polling error: " + err.message, "error");
             document.getElementById("add-btn").disabled = false;
-          } else if (data.status === "error") {
-            es.close();
-            showProgress("Error: " + data.message, "error");
           }
-        };
-
-        es.onerror = () => {
-          es.close();
-          showProgress("Connection lost during transcription.", "error");
-        };
+        }, 3000);
       }
 
       function showProgress(message, state) {
