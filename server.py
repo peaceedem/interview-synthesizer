@@ -5,13 +5,43 @@ import time
 import uuid
 from pathlib import Path
 
-# Put imageio-ffmpeg's binary on PATH before whisper loads
-try:
-    import imageio_ffmpeg
-    _ffmpeg_dir = os.path.dirname(imageio_ffmpeg.get_ffmpeg_exe())
-    os.environ["PATH"] = _ffmpeg_dir + os.pathsep + os.environ.get("PATH", "")
-except ImportError:
-    pass
+def _patch_whisper_ffmpeg():
+    """
+    Monkey-patch whisper.audio.load_audio to use the imageio-ffmpeg binary
+    directly instead of looking for 'ffmpeg' on PATH.  This makes transcription
+    work on Railway (and any environment) without a system ffmpeg install.
+    """
+    try:
+        import imageio_ffmpeg
+        import numpy as np
+        from subprocess import run, CalledProcessError
+        import whisper.audio as _wa
+
+        _ffmpeg_exe = imageio_ffmpeg.get_ffmpeg_exe()
+        _SAMPLE_RATE = _wa.SAMPLE_RATE
+
+        def _load_audio(file: str, sr: int = _SAMPLE_RATE):
+            cmd = [
+                _ffmpeg_exe,
+                "-nostdin", "-threads", "0",
+                "-i", file,
+                "-f", "s16le", "-ac", "1",
+                "-acodec", "pcm_s16le",
+                "-ar", str(sr),
+                "-",
+            ]
+            try:
+                out = run(cmd, capture_output=True, check=True).stdout
+            except CalledProcessError as e:
+                raise RuntimeError(f"Failed to load audio: {e.stderr.decode()}") from e
+            return np.frombuffer(out, np.int16).flatten().astype(np.float32) / 32768.0
+
+        _wa.load_audio = _load_audio
+
+    except Exception as e:
+        print(f"Warning: could not patch whisper ffmpeg path: {e}")
+
+_patch_whisper_ffmpeg()
 
 from flask import Flask, Response, jsonify, request, send_from_directory, stream_with_context
 from analyzer import synthesize
